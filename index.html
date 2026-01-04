@@ -1,315 +1,345 @@
 <!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8"> 
-    <title> 8 Ball Pool v1.03</title>
-    <link rel="icon" type="image/x-icon" href="./favicon.ico">
-    <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/main-mc.css">
-    <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/game-style.css">
-    <link rel="manifest" href="manifest.json">
-    <script src="//static-web-pool-production.pool.miniclippt.com/site/master_173/js/require.js"></script>
-    <style>
-        * {
-            background-color: black;
-        }
-
-        html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: black;
-        }
-
-        body {
-            margin: 0;
-            padding: 0;
-            width: 900px;
-            height: 600px;
-            transform-origin: top left;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: black;
-        }
-
-        /* This is the crucial transparent overlay */
-        #click-catcher {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background-color: rgba(0, 0, 0, 0); /* Fully transparent */
-            z-index: 9999; /* Ensures it's on top of all other elements */
-        }
-
-        #update-button {
-            display: none;
-            position: fixed;
-            z-index: 10000;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: sans-serif;
-            font-size: 16px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-    </style>
-</head>
-<body>
-    <!-- 1. The transparent div that captures the first click. -->
-    <div id="click-catcher"></div>
-
-    <div id="container">
-        <div id="canvas-container">
-            <canvas class="engine" id="engine" oncontextmenu="event.preventDefault()"></canvas>
-            <div id="loadingBox"></div>
-        </div>
-        <a id="modal-payment-link" class="fancybox fancybox.iframe" href="/pay/">Iframe</a>
-    </div>
-
-    <!-- Update Button for the Service Worker -->
-    <button id="update-button">New Version Available. Click to Reload.</button>
-
-    <script type="text/javascript">
-        /* Disable browser default behaviours for space and arrow keys */
-        window.addEventListener("keydown", function(e) {
-            if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1 && e.target == document.body) {
-                e.preventDefault();
+    <head>
+        <meta charset="UTF-8">
+        <title>8 Ball Pool v1.07</title>
+        <link rel="icon" type="image/x-icon" href="./favicon.ico">
+        <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/main-mc.css">
+        <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/game-style.css">
+        <link rel="manifest" href="manifest.json">
+        <script src="//static-web-pool-production.pool.miniclippt.com/site/master_173/js/require.js"></script>
+        <style>
+            * {
+                background-color: black;
             }
-        }, false);
 
-        /**
+            html {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                background-color: black;
+            }
+
+            body {
+                margin: 0;
+                padding: 0;
+                width: 900px;
+                height: 600px;
+                transform-origin: top left;
+                position: absolute;
+                top: 0;
+                left: 0;
+                background-color: black;
+            }
+
+            /* This is the crucial transparent overlay */
+            #click-catcher {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(0, 0, 0, 0);
+                /* Fully transparent */
+                z-index: 9999;
+                /* Ensures it's on top of all other elements */
+            }
+
+            #update-button {
+                display: none;
+                position: fixed;
+                z-index: 10000;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 12px 20px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-family: sans-serif;
+                font-size: 16px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            }
+        </style>
+    </head>
+    <body>
+        <!-- 1. The transparent div that captures the first click. -->
+        <div id="click-catcher"></div>
+        <div id="container">
+            <div id="canvas-container">
+                <canvas class="engine" id="engine" oncontextmenu="event.preventDefault()"></canvas>
+                <div id="loadingBox"></div>
+            </div>
+            <a id="modal-payment-link" class="fancybox fancybox.iframe" href="/pay/">Iframe</a>
+        </div>
+        <!-- Update Button for the Service Worker -->
+        <button id="update-button">New Version Available. Click to Reload.</button>
+        <script type="text/javascript">
+            /* Disable browser default behaviours for space and arrow keys */
+            window.addEventListener("keydown", function(e) {
+                if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1 && e.target == document.body) {
+                    e.preventDefault();
+                }
+            }, false);
+
+            /**
          * Initializes the game with a given configuration.
          * This function is created to avoid repeating the requirejs call.
          * @param {object} config - The configuration object for Application.init.
          */
-        function initializeGame(config) {
-            requirejs(['game'], function(Application) {
-                Application.init(config);
-            });
-        }
+            function initializeGame(config) {
+                requirejs(['game'], function(Application) {
+                    Application.init(config);
+                });
+            }
 
-        /**
+            /**
          * Sets up and initializes the standard version of the game.
          * @param {string} token - The access token to use.
          */
-        function setupStandardGame(token) {
-            requirejs.config({
-                baseUrl: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js",
-                config: {
-                    'settings': {
-                        'img_root' : "//static-web-pool-production.pool.miniclippt.com/site/master_173/img",
-                        'css_root' : "//static-web-pool-production.pool.miniclippt.com/site/master_173/css",
-                        'js_root' : "//static-web-pool-production.pool.miniclippt.com/site/master_173/js"
-                    }
-                },
-                waitSeconds: 60,
-                shim: { 'miniclip': { exports: 'MC' } },
-                paths: {
-                    jquery: '//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min',
-                    miniclip: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js/mc-sdk"
-                },
-                packages: [{
-                    name: 'game',
-                    location: "//static-web-pool-production.pool.miniclippt.com/game/4.4.3_8602f/js",
-                    main: 'application'
-                }]
-            });
+            function setupStandardGame(token) {
+                requirejs.config({
+                    baseUrl: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js",
+                    config: {
+                        'settings': {
+                            'img_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/img",
+                            'css_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/css",
+                            'js_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/js"
+                        }
+                    },
+                    waitSeconds: 60,
+                    shim: {
+                        'miniclip': {
+                            exports: 'MC'
+                        }
+                    },
+                    paths: {
+                        jquery: '//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min',
+                        miniclip: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js/mc-sdk"
+                    },
+                    packages: [{
+                        name: 'game',
+                        location: "//static-web-pool-production.pool.miniclippt.com/game/4.4.3_8602f/js",
+                        main: 'application'
+                    }]
+                });
 
-            const config = {
-                'environment': "production", 'platform': 'miniclip', 'app_id': 17,
-                'base_url': "//static-web-pool-production.pool.miniclippt.com/game",
-                'config_base_url': "//v34-web-live-config.pool.miniclippt.com",
-                'client_version': "4.4.3_8602f", 'access_token': token,
-                'emmett': 1, 'config_id_game': 0, 'config_id_promo': 0, 'syndicated': true,
-                'payment_endpoint': "https://prod-8ballpool-emscripten-site-service.pool.miniclippt.com"
-            };
-            initializeGame(config);
-        }
+                const config = {
+                    'environment': "production",
+                    'platform': 'miniclip',
+                    'app_id': 17,
+                    'base_url': "//static-web-pool-production.pool.miniclippt.com/game",
+                    'config_base_url': "//v34-web-live-config.pool.miniclippt.com",
+                    'client_version': "4.4.3_8602f",
+                    'access_token': token,
+                    'emmett': 1,
+                    'config_id_game': 0,
+                    'config_id_promo': 0,
+                    'syndicated': true,
+                    'payment_endpoint': "https://prod-8ballpool-emscripten-site-service.pool.miniclippt.com"
+                };
+                initializeGame(config);
+            }
 
-        /**
+            /**
          * Sets up and initializes the guest version of the game.
          */
-        function setupGuestGame() {
-            requirejs.config({
-                baseUrl: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js",
-                config: {
-                    'settings': {
-                        'img_root' : "//static-web-pool-production.pool.miniclippt.com/site/master_173/img",
-                        'css_root' : "//static-web-pool-production.pool.miniclippt.com/site/master_173/css",
-                        'js_root' : "//static-web-pool-production.pool.miniclippt.com/site/master_173/js"
-                    }
-                },
-                waitSeconds: 60,
-                shim: { 'miniclip': { exports: 'MC' } },
-                paths: {
-                    jquery: '//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min',
-                    miniclip: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js/mc-sdk"
-                },
-                packages: [{
-                    name: 'game',
-                    location: "//static-web-pool-production.pool.miniclippt.com/game/wasm_guest_1.0.0_73372/js",
-                    main: 'application'
-                }]
-            });
+            function setupGuestGame() {
+                requirejs.config({
+                    baseUrl: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js",
+                    config: {
+                        'settings': {
+                            'img_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/img",
+                            'css_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/css",
+                            'js_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/js"
+                        }
+                    },
+                    waitSeconds: 60,
+                    shim: {
+                        'miniclip': {
+                            exports: 'MC'
+                        }
+                    },
+                    paths: {
+                        jquery: '//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min',
+                        miniclip: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js/mc-sdk"
+                    },
+                    packages: [{
+                        name: 'game',
+                        location: "//static-web-pool-production.pool.miniclippt.com/game/wasm_guest_1.0.0_73372/js",
+                        main: 'application'
+                    }]
+                });
 
-            const guestConfig = {
-                'environment': "production",
-                'platform': 'miniclip',
-                'app_id': 17,
-                'base_url': "//static-web-pool-production.pool.miniclippt.com/game",
-                'config_base_url': "//v34-web-live-config.pool.miniclippt.com",
-                'client_version': "wasm_guest_1.0.0_73372",
-                'access_token': false,
-                'config_id_game': 0,
-                'config_id_promo': 0,
-                'syndicated': false,
-                'payment_endpoint': "https://prod-8ballpool-emscripten-site-service.pool.miniclippt.com"
-            };
-            initializeGame(guestConfig);
-        }
+                const guestConfig = {
+                    'environment': "production",
+                    'platform': 'miniclip',
+                    'app_id': 17,
+                    'base_url': "//static-web-pool-production.pool.miniclippt.com/game",
+                    'config_base_url': "//v34-web-live-config.pool.miniclippt.com",
+                    'client_version': "wasm_guest_1.0.0_73372",
+                    'access_token': false,
+                    'config_id_game': 0,
+                    'config_id_promo': 0,
+                    'syndicated': false,
+                    'payment_endpoint': "https://prod-8ballpool-emscripten-site-service.pool.miniclippt.com"
+                };
+                initializeGame(guestConfig);
+            }
 
-        /**
+            /**
          * Handles the logic for checking for an access token and initializing the game.
          */
-        function initializeAppLogic() {
-            const storedToken = localStorage.getItem('access_token');
+            function initializeAppLogic() {
+                const storedToken = localStorage.getItem('access_token');
 
-            if (storedToken) {
-                // If a token is found in localStorage, use it for the standard game.
-                console.log('Access token found in localStorage. Initializing standard game.');
-                setupStandardGame(storedToken);
-            } else {
-                // If no token is found, prompt the user.
-                console.log('No access token in localStorage. Prompting user.');
-                const userToken = prompt("Please enter your access token:", "");
+                if (storedToken) {
+                    // If a token is found in localStorage, use it for the standard game.
+                    console.log('Access token found in localStorage. Initializing standard game.');
+                    setupStandardGame(storedToken);
+                } else if (localStorage.getItem('login') === '1') {
+                    // If no token is found, prompt the user.
+                    console.log('No access token in localStorage. Prompting user.');
+                    const userToken = prompt("Please enter your access token:", "");
 
-                if (userToken) {
-                    // If the user provides a token, save it and set up the standard game.
-                    console.log('User provided a new access token. Initializing standard game.');
-                    let finalToken = userToken;
-                    if (userToken.length > 32) {
-                        try {
-                            const decodedString = atob(userToken);
-                            const jsonObject = JSON.parse(decodedString);
-                            if (jsonObject && jsonObject.access_token) {
-                                finalToken = jsonObject.access_token;
+                    if (userToken) {
+                        // If the user provides a token, save it and set up the standard game.
+                        console.log('User provided a new access token. Initializing standard game.');
+                        let finalToken = userToken;
+                        if (userToken.length > 32) {
+                            try {
+                                const decodedString = atob(userToken);
+                                const jsonObject = JSON.parse(decodedString);
+                                if (jsonObject && jsonObject.access_token) {
+                                    finalToken = jsonObject.access_token;
+                                }
+                            } catch (e) {
+                                console.error("Failed to parse token, using as is.", e);
                             }
-                        } catch (e) {
-                            console.error("Failed to parse token, using as is.", e);
                         }
+                        localStorage.setItem('access_token', finalToken);
+                        setupStandardGame(finalToken);
+                    } else {
+                        // If the user provides an empty answer, set up the guest game.
+                        console.log('User provided no token. Initializing in guest mode.');
+                        localStorage.clear();
+                        setupGuestGame();
                     }
-                    localStorage.setItem('access_token', finalToken);
-                    setupStandardGame(finalToken);
                 } else {
-                    // If the user provides an empty answer, set up the guest game.
-                    console.log('User provided no token. Initializing in guest mode.');
-                    setupGuestGame();
+                	  setupGuestGame();
                 }
             }
-        }
 
-        // Scaling functionality (unchanged)
-        function scaleBody() {
-            const bodyWidth = 900, bodyHeight = 600, aspectRatio = bodyWidth / bodyHeight;
-            const viewportWidth = window.innerWidth, viewportHeight = window.innerHeight, viewportAspectRatio = viewportWidth / viewportHeight;
-            let scale, offsetX = 0, offsetY = 0;
-            if (viewportAspectRatio > aspectRatio) {
-                scale = viewportHeight / bodyHeight;
-                offsetX = (viewportWidth - (bodyWidth * scale)) / 2;
-            } else {
-                scale = viewportWidth / bodyWidth;
-                offsetY = (viewportHeight - (bodyHeight * scale)) / 2;
-            }
-            document.body.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
-        }
-
-        // --- START: MODIFIED FUNCTION ---
-        // The function that handles the first click: triggers fullscreen and propagates the click.
-        function handleFirstInteraction(event) {
-            console.log('First interaction detected.');
-            const overlay = document.getElementById('click-catcher');
-            const elem = document.documentElement;
-
-            // This function contains the logic to pass the click through.
-            const propagateClick = () => {
-                const canvas = document.getElementById('engine');
-                if (canvas) {
-                    const newClickEvent = new MouseEvent('click', {
-                        bubbles: true,
-                        cancelable: true,
-                        view: window,
-                        clientX: event.clientX,
-                        clientY: event.clientY,
-                        screenX: event.screenX,
-                        screenY: event.screenY,
-                        button: event.button,
-                        buttons: event.buttons,
-                        relatedTarget: event.relatedTarget
-                    });
-                    setTimeout(()=>canvas.dispatchEvent(newClickEvent),500);
+            // Scaling functionality (unchanged)
+            function scaleBody() {
+                const bodyWidth = 900
+                  , bodyHeight = 600
+                  , aspectRatio = bodyWidth / bodyHeight;
+                const viewportWidth = window.innerWidth
+                  , viewportHeight = window.innerHeight
+                  , viewportAspectRatio = viewportWidth / viewportHeight;
+                let scale, offsetX = 0, offsetY = 0;
+                if (viewportAspectRatio > aspectRatio) {
+                    scale = viewportHeight / bodyHeight;
+                    offsetX = (viewportWidth - (bodyWidth * scale)) / 2;
+                } else {
+                    scale = viewportWidth / bodyWidth;
+                    offsetY = (viewportHeight - (bodyHeight * scale)) / 2;
                 }
-
-                // Permanently remove the overlay
-                if (overlay && overlay.parentNode) {
-                    overlay.parentNode.removeChild(overlay);
-                }
-            };
-
-            // We'll run propagateClick either when fullscreen succeeds, or as a fallback.
-            const onFullscreenChange = () => {
-                // Check if we are actually in fullscreen. If not, the request failed.
-                if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
-                    propagateClick();
-                }
-            };
-
-            // Attach listeners to run the logic AFTER the fullscreen transition is complete.
-            document.addEventListener('fullscreenchange', onFullscreenChange, { once: true });
-            document.addEventListener('webkitfullscreenchange', onFullscreenChange, { once: true });
-            document.addEventListener('mozfullscreenchange', onFullscreenChange, { once: true });
-            document.addEventListener('MSFullscreenChange', onFullscreenChange, { once: true });
-
-            // Lock orientation first
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(err => console.log('Orientation lock failed:', err));
+                document.body.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
             }
 
-            // Now, request fullscreen
-            if (elem.requestFullscreen) {
-                elem.requestFullscreen().catch(err => {
-                    console.log('Fullscreen request failed:', err);
-                    // If it fails, propagate the click immediately as a fallback.
-                    propagateClick();
+            // --- START: MODIFIED FUNCTION ---
+            // The function that handles the first click: triggers fullscreen and propagates the click.
+            function handleFirstInteraction(event) {
+                console.log('First interaction detected.');
+                const overlay = document.getElementById('click-catcher');
+                const elem = document.documentElement;
+
+                // This function contains the logic to pass the click through.
+                const propagateClick = () => {
+                    const canvas = document.getElementById('engine');
+                    if (canvas) {
+                        const newClickEvent = new MouseEvent('click',{
+                            bubbles: true,
+                            cancelable: true,
+                            view: window,
+                            clientX: event.clientX,
+                            clientY: event.clientY,
+                            screenX: event.screenX,
+                            screenY: event.screenY,
+                            button: event.button,
+                            buttons: event.buttons,
+                            relatedTarget: event.relatedTarget
+                        });
+                        setTimeout( () => canvas.dispatchEvent(newClickEvent), 500);
+                    }
+
+                    // Permanently remove the overlay
+                    if (overlay && overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                }
+                ;
+
+                // We'll run propagateClick either when fullscreen succeeds, or as a fallback.
+                const onFullscreenChange = () => {
+                    // Check if we are actually in fullscreen. If not, the request failed.
+                    if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                        propagateClick();
+                    }
+                }
+                ;
+
+                // Attach listeners to run the logic AFTER the fullscreen transition is complete.
+                document.addEventListener('fullscreenchange', onFullscreenChange, {
+                    once: true
                 });
-            } else if (elem.webkitRequestFullscreen) {
-                elem.webkitRequestFullscreen();
-            } else if (elem.mozRequestFullScreen) {
-                elem.mozRequestFullScreen();
-            } else if (elem.msRequestFullscreen) {
-                elem.msRequestFullscreen();
-            } else {
-                // If fullscreen API is not supported at all, just propagate the click.
-                console.log('Fullscreen API not supported.');
-                propagateClick();
-            }
-        }
-        // --- END: MODIFIED FUNCTION ---
+                document.addEventListener('webkitfullscreenchange', onFullscreenChange, {
+                    once: true
+                });
+                document.addEventListener('mozfullscreenchange', onFullscreenChange, {
+                    once: true
+                });
+                document.addEventListener('MSFullscreenChange', onFullscreenChange, {
+                    once: true
+                });
 
-        // Service Worker Registration and Update Logic (unchanged)
-        function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(registration => {
+                // Lock orientation first
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => console.log('Orientation lock failed:', err));
+                }
+
+                // Now, request fullscreen
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => {
+                        console.log('Fullscreen request failed:', err);
+                        // If it fails, propagate the click immediately as a fallback.
+                        propagateClick();
+                    }
+                    );
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                } else {
+                    // If fullscreen API is not supported at all, just propagate the click.
+                    console.log('Fullscreen API not supported.');
+                    propagateClick();
+                }
+            }
+            // --- END: MODIFIED FUNCTION ---
+
+            // Service Worker Registration and Update Logic (unchanged)
+            function registerServiceWorker() {
+                if ('serviceWorker'in navigator) {
+                    navigator.serviceWorker.register('sw.js').then(registration => {
                         console.log('SW registered:', registration.scope);
                         registration.addEventListener('updatefound', () => {
                             const newWorker = registration.installing;
@@ -319,59 +349,64 @@
                                     if (updateButton) {
                                         updateButton.style.display = 'block';
                                         updateButton.addEventListener('click', () => {
-                                            newWorker.postMessage({ type: 'SKIP_WAITING' });
+                                            newWorker.postMessage({
+                                                type: 'SKIP_WAITING'
+                                            });
                                             updateButton.style.display = 'none';
                                             window.location.reload();
-                                        }, { once: true });
+                                        }
+                                        , {
+                                            once: true
+                                        });
                                     }
                                 }
-                            });
-                        });
-                    }).catch(err => console.error('SW registration failed:', err));
-                //navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
-            }
-        }
-
-
-        // Single Load Event Listener that sets everything up.
-        window.addEventListener('load', function() {
-            // Check for 'reset' parameter in the URL
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('reset')) {
-                console.log('Reset parameter found. Clearing access token from localStorage.');
-                localStorage.removeItem('access_token');
+                            }
+                            );
+                        }
+                        );
+                    }
+                    ).catch(err => console.error('SW registration failed:', err));
+                    //navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
+                }
             }
 
-            initializeAppLogic();
-            scaleBody();
+            // Single Load Event Listener that sets everything up.
+            window.addEventListener('load', function() {
+                // Check for 'reset' parameter in the URL
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('reset')) {
+                    console.log('Reset parameter found. Clearing access token from localStorage.');
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('login');
+                }
 
-            const overlay = document.getElementById('click-catcher');
-            overlay.addEventListener('click', handleFirstInteraction, { once: true });
+                initializeAppLogic();
+                scaleBody();
 
-            registerServiceWorker();
-        });
+                const overlay = document.getElementById('click-catcher');
+                overlay.addEventListener('click', handleFirstInteraction, {
+                    once: true
+                });
 
-        // Event listeners for scaling (unchanged)
-        window.addEventListener('resize', scaleBody);
-        document.addEventListener('fullscreenchange', () => setTimeout(scaleBody, 100));
-        document.addEventListener('webkitfullscreenchange', () => setTimeout(scaleBody, 100));
-        document.addEventListener('mozfullscreenchange', () => setTimeout(scaleBody, 100));
-        document.addEventListener('MSFullscreenChange', () => setTimeout(scaleBody, 100));
+                registerServiceWorker();
+            });
 
-window.addEventListener('message', function(event) {
-const message = JSON.parse(event.data);
-console.log('received event:',event);
-if (message.data.action=="login") {
-  localStorage.clear();
-  window.location.reload();
-} else if (message.data.action=="reload") {
-  window.location.reload();
-} else if (message.data.action=="logout") {
-  localStorage.clear();
-  window.location.reload();
-}
-});
-    </script>
-</body>
+            // Event listeners for scaling (unchanged)
+            window.addEventListener('resize', scaleBody);
+            document.addEventListener('fullscreenchange', () => setTimeout(scaleBody, 100));
+            document.addEventListener('webkitfullscreenchange', () => setTimeout(scaleBody, 100));
+            document.addEventListener('mozfullscreenchange', () => setTimeout(scaleBody, 100));
+            document.addEventListener('MSFullscreenChange', () => setTimeout(scaleBody, 100));
+
+            window.addEventListener('message', function(event) {
+                const message = JSON.parse(event.data);
+                console.log('received event:', event);
+                if (message.data.action == "login") {
+                    localStorage.clear();
+                    localStorage.login = 1;
+                    window.location.reload();
+                }
+            });
+        </script>
+    </body>
 </html>
-
