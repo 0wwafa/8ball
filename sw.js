@@ -1,5 +1,5 @@
 const CACHE_NAME = '8-ball-pool-dynamic-cache-v3';
-const version = 'v1.925';
+const version = 'v1.926';
 const appShellFiles = [
   // Add any core files you want to pre-cache here
 ];
@@ -18,7 +18,7 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// ACTIVATE: Clean up the cache by deleting critical files and any 'gtag' entries.
+// ACTIVATE: Clean up the cache by deleting critical files and any specified entries.
 self.addEventListener('activate', event => {
   console.log(`Service worker ${version} activating...`);
   event.waitUntil(
@@ -32,12 +32,12 @@ self.addEventListener('activate', event => {
         })
       );
 
-      // NEW: Find and delete any requests containing "gtag".
-      const gtagDeletions = cache.keys().then(requests => {
+      // Find and delete any requests containing "gtag", "google", or "facebook".
+      const unwantedDeletions = cache.keys().then(requests => {
         const deletePromises = [];
         requests.forEach(request => {
-          if (request.url.includes('gtag')) {
-            console.log(`Deleting gtag request from cache: ${request.url}`);
+          if (request.url.includes('gtag') || request.url.includes('google') || request.url.includes('facebook')) {
+            console.log(`Deleting unwanted request from cache: ${request.url}`);
             deletePromises.push(cache.delete(request));
           }
         });
@@ -45,7 +45,7 @@ self.addEventListener('activate', event => {
       });
 
       // Wait for all deletions to complete before claiming clients.
-      return Promise.all([criticalFileDeletions, gtagDeletions]);
+      return Promise.all([criticalFileDeletions, unwantedDeletions]);
 
     }).then(() => {
       // Now that the stale files are gone, take control of the clients.
@@ -58,8 +58,8 @@ self.addEventListener('activate', event => {
 
 // FETCH: Your network-first logic is now guaranteed to work for index.html
 self.addEventListener('fetch', event => {
-  // Do not cache anything that contains "gtag" and only handle GET requests.
-  if (event.request.method !== 'GET' || event.request.url.includes('gtag')) {
+  // Do not cache anything that contains "gtag", "google", or "facebook" and only handle GET requests.
+  if (event.request.method !== 'GET' || event.request.url.includes('gtag') || event.request.url.includes('google') || event.request.url.includes('facebook')) {
     return;
   }
 
