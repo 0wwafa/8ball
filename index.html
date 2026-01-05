@@ -344,8 +344,9 @@
 
         // Single Load Event Listener that sets everything up.
         window.addEventListener('load', function() {
-            // Check for 'reset' parameter in the URL
             const urlParams = new URLSearchParams(window.location.search);
+
+            // Check for 'reset' parameter in the URL
             if (urlParams.has('reset')) {
                 console.log('Reset parameter found. Clearing access token from localStorage.');
                 localStorage.removeItem('access_token');
@@ -355,14 +356,24 @@
             initializeAppLogic();
             scaleBody();
 
-            const overlay = document.getElementById('click-catcher');
-            overlay.addEventListener('click', handleFirstInteraction, {
-                once: true
-            });
+            // Check if the 'nofs' parameter is present in the URL
+            if (urlParams.has('nofs')) {
+                const overlay = document.getElementById('click-catcher');
+                // If the overlay exists, remove it from the page completely.
+                if (overlay && overlay.parentNode) {
+                    overlay.parentNode.removeChild(overlay);
+                }
+            } else {
+                // If 'nofs' is not present, add the event listener to the overlay as usual.
+                const overlay = document.getElementById('click-catcher');
+                overlay.addEventListener('click', handleFirstInteraction, {
+                    once: true
+                });
+            }
 
             registerServiceWorker();
         });
-
+        
         // Event listeners for scaling (unchanged)
         window.addEventListener('resize', scaleBody);
         document.addEventListener('fullscreenchange', () => setTimeout(scaleBody, 100));
