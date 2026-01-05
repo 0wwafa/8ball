@@ -1,5 +1,5 @@
 const CACHE_NAME = '8-ball-pool-dynamic-cache-v3';
-const version = 'v1.915';
+const version = 'v1.916';
 const appShellFiles = [
   // Add any core files you want to pre-cache here
 ];
@@ -8,6 +8,9 @@ const criticalFiles = [
   './index.html',
   './game.html',
   './manifest.json',
+  './logo192.png',
+  './favicon.ico',
+  './sw.js'
 ];
 
 // INSTALL: Force the new service worker to activate immediately.
