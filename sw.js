@@ -1,5 +1,5 @@
 const CACHE_NAME = '8-ball-pool-dynamic-cache-v3';
-const version = 'v1.923';
+const version = 'v1.924';
 const appShellFiles = [
   // Add any core files you want to pre-cache here
 ];
@@ -18,20 +18,35 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// ACTIVATE: This is the key. Delete critical files from the cache BEFORE taking control.
+// ACTIVATE: Clean up the cache by deleting critical files and any 'gtag' entries.
 self.addEventListener('activate', event => {
   console.log(`Service worker ${version} activating...`);
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       console.log('Forcing deletion of critical files from cache...');
-      // Manually delete the old, cached versions of our critical files.
-      // This is the programmatic equivalent of you deleting them in DevTools.
-      return Promise.all(
+      // Delete the old, cached versions of our critical files.
+      const criticalFileDeletions = Promise.all(
         criticalFiles.map(url => {
           console.log(`Deleting ${url}`);
           return cache.delete(url);
         })
       );
+
+      // NEW: Find and delete any requests containing "gtag".
+      const gtagDeletions = cache.keys().then(requests => {
+        const deletePromises = [];
+        requests.forEach(request => {
+          if (request.url.includes('gtag')) {
+            console.log(`Deleting gtag request from cache: ${request.url}`);
+            deletePromises.push(cache.delete(request));
+          }
+        });
+        return Promise.all(deletePromises);
+      });
+
+      // Wait for all deletions to complete before claiming clients.
+      return Promise.all([criticalFileDeletions, gtagDeletions]);
+
     }).then(() => {
       // Now that the stale files are gone, take control of the clients.
       console.log('Stale files deleted. Claiming clients.');
@@ -43,7 +58,8 @@ self.addEventListener('activate', event => {
 
 // FETCH: Your network-first logic is now guaranteed to work for index.html
 self.addEventListener('fetch', event => {
-  if (event.request.method !== 'GET') {
+  // Do not cache anything that contains "gtag" and only handle GET requests.
+  if (event.request.method !== 'GET' || event.request.url.includes('gtag')) {
     return;
   }
 
@@ -55,38 +71,38 @@ self.addEventListener('fetch', event => {
     // Network-first for critical files.
     event.respondWith(
       fetch(event.request)
-        .then(networkResponse => {
-          // On success, update the cache
-          return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
-        })
-        .catch(() => {
-          // If network fails, try to serve from cache (as a fallback)
-          console.log('Network failed for critical file, serving from cache:', requestPath);
-          return caches.match(event.request);
-        })
+      .then(networkResponse => {
+        // On success, update the cache
+        return caches.open(CACHE_NAME).then(cache => {
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        });
+      })
+      .catch(() => {
+        // If network fails, try to serve from cache (as a fallback)
+        console.log('Network failed for critical file, serving from cache:', requestPath);
+        return caches.match(event.request);
+      })
     );
   } else {
     // Cache-first for all other static assets.
     event.respondWith(
       caches.match(event.request)
-        .then(cachedResponse => {
-          if (cachedResponse) {
-            return cachedResponse;
-          }
-          return fetch(event.request).then(networkResponse => {
-            if (!networkResponse || (networkResponse.status !== 200 && networkResponse.status !== 0)) {
-              return networkResponse;
-            }
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, responseToCache);
-            });
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        return fetch(event.request).then(networkResponse => {
+          if (!networkResponse || (networkResponse.status !== 200 && networkResponse.status !== 0)) {
             return networkResponse;
+          }
+          const responseToCache = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, responseToCache);
           });
-        })
+          return networkResponse;
+        });
+      })
     );
   }
 });
