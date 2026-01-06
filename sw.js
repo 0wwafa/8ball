@@ -1,5 +1,5 @@
 const CACHE_NAME = '8-ball-pool-dynamic-cache-v3';
-const version = 'v1.926';
+const version = 'v1.927';
 const appShellFiles = [
   // Add any core files you want to pre-cache here
 ];
