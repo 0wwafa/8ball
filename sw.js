@@ -1,8 +1,6 @@
 const CACHE_NAME = '8-ball-pool-dynamic-cache-v3';
-const version = 'v1.927';
-const appShellFiles = [
-  // Add any core files you want to pre-cache here
-];
+const version = 'v1.928';
+
 const criticalFiles = [
   './',
   './index.html',
@@ -56,7 +54,6 @@ self.addEventListener('activate', event => {
 });
 
 
-// FETCH: Your network-first logic is now guaranteed to work for index.html
 self.addEventListener('fetch', event => {
   // Do not cache anything that contains "gtag", "google", or "facebook" and only handle GET requests.
   if (event.request.method !== 'GET' || event.request.url.includes('gtag') || event.request.url.includes('google') || event.request.url.includes('facebook')) {
