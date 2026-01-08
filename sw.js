@@ -1,5 +1,5 @@
 const CACHE_NAME = '8-ball-pool-dynamic-cache-v3';
-const version = 'v1.944';
+const version = 'v1.945';
 
 const criticalFiles = [
   './',
