@@ -67,7 +67,7 @@
             padding: 25px;
             border-radius: 10px;
             border: 1px solid #444;
-            width: 90%;
+            width: 70%;
             max-width: 600px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             text-align: left;
@@ -252,6 +252,7 @@
 
         function showTokenRequester() {
             // Displays the HTML modal for token input.
+            document.querySelector("#loadingBox2").style.display='none';
             const overlay = document.getElementById('token-requester-overlay');
             if (overlay) {
                 overlay.style.display = 'flex';
