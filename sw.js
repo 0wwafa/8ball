@@ -1,6 +1,5 @@
-
 const CACHE_NAME = '8-ball-pool-dynamic-cache-v3';
-const version = 'v1.929';
+const version = 'v1.930';
 
 const criticalFiles = [
   './',
@@ -22,33 +21,27 @@ self.addEventListener('activate', event => {
   console.log(`Service worker ${version} activating...`);
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
-      console.log('Forcing deletion of critical files from cache...');
-      // Delete the old, cached versions of our critical files.
-      const criticalFileDeletions = Promise.all(
-        criticalFiles.map(url => {
-          console.log(`Deleting ${url}`);
-          return cache.delete(url);
-        })
-      );
+      console.log('Cleaning up cache...');
+      return cache.keys().then(requests => {
+        const deletePromises = requests.map(request => {
+          const url = new URL(request.url);
+          // Check if the path is a critical file, ignoring URL parameters.
+          if (criticalFiles.includes(url.pathname)) {
+            console.log(`Deleting critical file match from cache: ${request.url}`);
+            return cache.delete(request);
+          }
 
-      // Find and delete any requests containing "gtag", "google", or "facebook".
-      const unwantedDeletions = cache.keys().then(requests => {
-        const deletePromises = [];
-        requests.forEach(request => {
-          if (request.url.includes('gtag') || request.url.includes('google') || request.url.includes('facebook')) {
+          // Check for and delete any unwanted requests.
+          if (url.href.includes('gtag') || url.href.includes('google') || url.href.includes('facebook')) {
             console.log(`Deleting unwanted request from cache: ${request.url}`);
-            deletePromises.push(cache.delete(request));
+            return cache.delete(request);
           }
         });
         return Promise.all(deletePromises);
       });
-
-      // Wait for all deletions to complete before claiming clients.
-      return Promise.all([criticalFileDeletions, unwantedDeletions]);
-
     }).then(() => {
       // Now that the stale files are gone, take control of the clients.
-      console.log('Stale files deleted. Claiming clients.');
+      console.log('Cache cleanup complete. Claiming clients.');
       return self.clients.claim();
     })
   );
@@ -104,3 +97,4 @@ self.addEventListener('fetch', event => {
     );
   }
 });
+
