@@ -67,8 +67,8 @@
             padding: 25px;
             border-radius: 10px;
             border: 1px solid #444;
-            width: 100%;
-            max-width: 520px;
+            width: 70%;
+            max-width: 500px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.5);
             text-align: left;
         }
@@ -208,6 +208,7 @@
             requirejs(['game'], function(Application) {
                 Application.init(config);
             });
+            setTimeout(()=>document.querySelector("#loading").style.display='block',2000);
         }
 
         function setupStandardGame(token) {
@@ -419,7 +420,6 @@
 
 (function() {
   document.querySelector("#canvas-container").style.display='none';
-  setTimeout(()=>document.querySelector("#loading").style.display='block',2000);
   // Store the original console.log function
   const originalLog = console.log;
 

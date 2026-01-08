@@ -1,5 +1,5 @@
 const CACHE_NAME = '8-ball-pool-dynamic-cache-v3';
-const version = 'v1.948';
+const version = 'v1.949';
 
 const criticalFiles = [
   './',
@@ -112,3 +112,4 @@ self.addEventListener('fetch', event => {
   }
 });
 
+/
