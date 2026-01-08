@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>8 Ball Pool v1.11</title>
+    <title>8 Ball Pool v1.12</title>
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
     <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/main-mc.css">
     <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/game-style.css">
@@ -410,6 +410,25 @@
                 // This will ignore messages that are not valid JSON.
             }
         });
+
+(function() {
+  document.querySelector("#canvas-container").style.display='none';
+  // Store the original console.log function
+  const originalLog = console.log;
+
+  // Override console.log with a new function
+  console.log = function(message, ...args) {
+
+    // Call the original console.log to print the message as usual
+    originalLog.apply(console, [message, ...args]);
+
+    // Check if the message is the one we are waiting for
+    if (message==("[Runtime]") && args[0]=="Initialized.") {
+      document.querySelector("#canvas-container").style.display='block';
+    }
+  };
+})();
+
     </script>
 </body>
 
