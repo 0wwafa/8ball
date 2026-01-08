@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>8 Ball Pool v1.12</title>
+    <title>8 Ball Pool v1.13</title>
     <link rel="icon" type="image/x-icon" href="./favicon.ico">
     <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/main-mc.css">
     <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/game-style.css">
@@ -137,6 +137,23 @@
         #token-requester-modal #submit-token-btn {
             background-color: #2a8a2a;
         }
+
+#loadingBox {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #1a1a1a;
+    color: white;
+    padding: 20px 40px;
+    border-radius: 10px;
+    border: 1px solid #444;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    z-index: 10001;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    text-align: center;
+}
     </style>
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-9E8VQK1R87"></script>
@@ -425,6 +442,7 @@
     // Check if the message is the one we are waiting for
     if (message==("[Runtime]") && args[0]=="Initialized.") {
       document.querySelector("#canvas-container").style.display='block';
+      document.querySelector("#loadingBox").style.display='none';
     }
   };
 })();
