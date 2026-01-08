@@ -16,28 +16,41 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// ACTIVATE: Clean up the cache by deleting critical files and any specified entries.
+// ACTIVATE: Clean up the cache by deleting critical files, unwanted entries, and page routes.
 self.addEventListener('activate', event => {
   console.log(`Service worker ${version} activating...`);
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => {
       console.log('Cleaning up cache...');
+      // Resolve critical file paths relative to the service worker's location for robust matching.
+      const criticalFilePaths = criticalFiles.map(file => new URL(file, self.location.href).pathname);
+
       return cache.keys().then(requests => {
         const deletePromises = requests.map(request => {
           const url = new URL(request.url);
-          // Check if the path is a critical file, ignoring URL parameters.
-          if (criticalFiles.includes(url.pathname)) {
+          const path = url.pathname;
+
+          // Condition 1: Delete if it's a critical file (ignoring URL parameters).
+          if (criticalFilePaths.includes(path)) {
             console.log(`Deleting critical file match from cache: ${request.url}`);
             return cache.delete(request);
           }
 
-          // Check for and delete any unwanted requests.
+          // Condition 2: Delete unwanted third-party requests.
           if (url.href.includes('gtag') || url.href.includes('google') || url.href.includes('facebook')) {
             console.log(`Deleting unwanted request from cache: ${request.url}`);
             return cache.delete(request);
           }
+
+          // Condition 3: Delete cached pages/routes (heuristic: no file extension).
+          // This handles your request to delete items related to the location pathname.
+          const lastPathComponent = path.substring(path.lastIndexOf('/') + 1);
+          if (lastPathComponent && !lastPathComponent.includes('.')) {
+            console.log(`Deleting potential page route from cache: ${request.url}`);
+            return cache.delete(request);
+          }
         });
-        return Promise.all(deletePromises);
+        return Promise.all(deletePromises.filter(Boolean));
       });
     }).then(() => {
       // Now that the stale files are gone, take control of the clients.
@@ -54,11 +67,11 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  const requestUrl = new URL(event.request.url);
-  const requestPath = requestUrl.pathname;
+  // Resolve critical file paths once for robust matching.
+  const criticalFilePaths = criticalFiles.map(file => new URL(file, self.location.href).pathname);
+  const requestPath = new URL(event.request.url).pathname;
 
-  // Use includes() to correctly match '/' and '/index.html'
-  if (criticalFiles.includes(requestPath)) {
+  if (criticalFilePaths.includes(requestPath)) {
     // Network-first for critical files.
     event.respondWith(
       fetch(event.request)
