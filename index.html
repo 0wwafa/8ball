@@ -139,6 +139,8 @@
         }
         #loadingBox {
             top: 40% !important;
+        }
+        #loading {
             display: none;
         }
     </style>
@@ -160,7 +162,7 @@
         <div id="canvas-container">
             <canvas class="engine" id="engine" oncontextmenu="event.preventDefault()"></canvas>
         </div>
-        <div id="loadingBox"></div>
+        <div id="loading"><div id="loadingBox"></div></div>
         <a id="modal-payment-link" class="fancybox fancybox.iframe" href="/pay/">Iframe</a>
     </div>
     
@@ -417,7 +419,7 @@
 
 (function() {
   document.querySelector("#canvas-container").style.display='none';
-  setTimeout(()=>document.querySelector("#loadingBox").style.display='initial',1000);
+  setTimeout(()=>document.querySelector("#loading").style.display='block',1000);
   // Store the original console.log function
   const originalLog = console.log;
 
@@ -430,6 +432,7 @@
     // Check if the message is the one we are waiting for
     if (message==("[Runtime]") && args[0]=="Initialized.") {
       document.querySelector("#canvas-container").style.display='block';
+      document.querySelector("#loading").style.display='none';
     }
   };
 })();
