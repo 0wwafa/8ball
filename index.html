@@ -137,6 +137,9 @@
         #token-requester-modal #submit-token-btn {
             background-color: #2a8a2a;
         }
+        #loadingBox {
+            top: 40%;
+        }
     </style>
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-9E8VQK1R87"></script>
@@ -156,7 +159,7 @@
         <div id="canvas-container">
             <canvas class="engine" id="engine" oncontextmenu="event.preventDefault()"></canvas>
         </div>
-        <div id="loadingBox">LOADING</div>
+        <div id="loadingBox"></div>
         <a id="modal-payment-link" class="fancybox fancybox.iframe" href="/pay/">Iframe</a>
     </div>
     
@@ -413,7 +416,6 @@
 
 (function() {
   document.querySelector("#canvas-container").style.display='none';
-  document.querySelector("#loadingBox").style.top='40%';
   // Store the original console.log function
   const originalLog = console.log;
 
