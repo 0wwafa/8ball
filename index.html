@@ -350,7 +350,7 @@
             initializeAppLogic();
             scaleBody();
 
-            if (urlParams.has('nofs')) {
+            if (urlParams.has('nofs')||urlParams.has('utm_source')) {
                 const overlay = document.getElementById('click-catcher');
                 if (overlay && overlay.parentNode) {
                     overlay.parentNode.removeChild(overlay);
