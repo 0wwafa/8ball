@@ -137,23 +137,6 @@
         #token-requester-modal #submit-token-btn {
             background-color: #2a8a2a;
         }
-
-#loadingBox2 {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: #1a1a1a;
-    color: white;
-    padding: 20px 40px;
-    border-radius: 10px;
-    border: 1px solid #444;
-    font-family: Arial, sans-serif;
-    font-size: 18px;
-    z-index: 10001;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    text-align: center;
-}
     </style>
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-9E8VQK1R87"></script>
@@ -169,7 +152,6 @@
 
 <body>
     <div id="click-catcher"></div>
-    <div id="loadingBox2">LOADING</div>
     <div id="container">
         <div id="canvas-container">
             <canvas class="engine" id="engine" oncontextmenu="event.preventDefault()"></canvas>
@@ -252,7 +234,6 @@
 
         function showTokenRequester() {
             // Displays the HTML modal for token input.
-            document.querySelector("#loadingBox2").style.display='none';
             const overlay = document.getElementById('token-requester-overlay');
             if (overlay) {
                 overlay.style.display = 'flex';
@@ -445,7 +426,6 @@
     // Check if the message is the one we are waiting for
     if (message==("[Runtime]") && args[0]=="Initialized.") {
       document.querySelector("#canvas-container").style.display='block';
-      document.querySelector("#loadingBox2").style.display='none';
     }
   };
 })();
