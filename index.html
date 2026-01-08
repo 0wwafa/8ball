@@ -139,6 +139,7 @@
         }
         #loadingBox {
             top: 40% !important;
+            display: none;
         }
     </style>
 
@@ -416,6 +417,7 @@
 
 (function() {
   document.querySelector("#canvas-container").style.display='none';
+  setTimeout(()=>document.querySelector("#loadingBox").style.display='initial',1000);
   // Store the original console.log function
   const originalLog = console.log;
 
