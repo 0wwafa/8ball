@@ -1,0 +1,742 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>8 Ball Pool v1.2.6</title>
+        <link rel="icon" type="image/x-icon" href="./favicon.ico">
+        <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/main-mc.css">
+        <link rel="stylesheet" type="text/css" media="screen" href="//static-web-pool-production.pool.miniclippt.com/site/master_173/css/game-style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+        <link rel="manifest" href="manifest.json">
+        <!-- Social Media Preview Tags -->
+        <meta property="og:type" content="website">
+        <meta property="og:title" content="8 Ball Pool (PWA)">
+        <meta property="og:description" content="8 Ball Pool">
+        <meta property="og:url" content="https://0wwafa.github.io/8ball">
+        <meta property="og:image" content="https://0wwafa.github.io/8ball/logo512.png">
+        <!-- End of Social Media Tags -->
+        <script src="//static-web-pool-production.pool.miniclippt.com/site/master_173/js/require.js"></script>
+        <style>
+            * {
+                box-sizing: border-box;
+                /* Makes layout math more intuitive */
+            }
+
+            html, body {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                background-color: black;
+            }
+
+            /* NEW: This is the div that is as big as the full viewport */
+            #main-container {
+                width: 100vw;
+                height: 100vh;
+                position: relative;
+                /* Needed for child positioning */
+                overflow: hidden;
+            }
+
+            /* This wrapper holds the 900x600 content and gets scaled by the script */
+            #game-wrapper {
+                width: 900px;
+                height: 600px;
+                position: absolute;
+                top: 0;
+                left: 0;
+                transform-origin: top left;
+                background-color: black;
+            }
+
+            #click-catcher {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(0, 0, 0, 0);
+                z-index: 9999;
+            }
+
+            #token-requester-overlay {
+                display: none;
+                position: fixed;
+                top: -1%;
+                left: -5%;
+                width: 100vw;
+                height: 100vh;
+                background-color: rgba(0, 0, 0, 0.8);
+                z-index: 10000;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                font-family: Arial, sans-serif;
+                transform-origin: top left;
+            }
+
+            #token-requester-modal {
+                background-color: #1a1a1a;
+                padding: 25px;
+                border-radius: 10px;
+                border: 1px solid #444;
+                width: 50%;
+                max-width: 600px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+                text-align: left;
+                transform: scale(0.7);
+            }
+
+            #token-requester-modal h2 {
+                margin-top: 0;
+                text-align: center;
+                color: white;
+            }
+
+            #token-requester-modal p, #token-requester-modal li {
+                color: white;
+            }
+
+            #token-requester-modal a {
+                color: #4ac;
+            }
+
+            #token-requester-modal ol {
+                padding-left: 20px;
+            }
+
+            #token-requester-modal pre {
+                background-color: #000;
+                border: 1px solid #333;
+                padding: 10px;
+                border-radius: 5px;
+                white-space: pre-wrap;
+                word-wrap: break-word;
+                font-size: 12px;
+                color: white;
+            }
+
+            #token-requester-modal code {
+                color: white;
+                background-color: #000;
+            }
+
+            #token-requester-modal input {
+                width: 100%;
+                padding: 10px;
+                margin: 20px 0;
+                box-sizing: border-box;
+                background-color: #333;
+                border: 1px solid #555;
+                color: white;
+                border-radius: 5px;
+            }
+
+            #token-requester-modal .button-container {
+                display: flex;
+                justify-content: space-between;
+            }
+
+            #token-requester-modal button {
+                width: 48%;
+                padding: 12px;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                font-weight: bold;
+                background-color: #555;
+                color: white;
+            }
+
+            #token-requester-modal #submit-token-btn {
+                background-color: #2a8a2a;
+            }
+
+            #loadingBox {
+                top: 40% !important;
+                transform: scale(2) !Important;
+            }
+
+            #loading {
+                display: none;
+            }
+        </style>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-9E8VQK1R87"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+
+            function gtag() {
+                dataLayer.push(arguments);
+            }
+            gtag('js', new Date());
+
+            gtag('config', 'G-9E8VQK1R87');
+        </script>
+    </head>
+    <body>
+        <div id="main-container">
+            <div id="game-wrapper">
+                <div id="click-catcher"></div>
+                <div id="container">
+                    <div id="canvas-container">
+                        <canvas class="engine" id="engine" oncontextmenu="event.preventDefault()"></canvas>
+                    </div>
+                    <div id="loading">
+                        <div id="loadingBox"></div>
+                    </div>
+                    <a id="modal-payment-link" class="fancybox fancybox.iframe" href="/pay/">Iframe</a>
+                </div>
+                <div id="token-requester-overlay">
+                    <div id="token-requester-modal">
+                        <h2>Enter Access Token</h2>
+                        <br>
+                        <p>To get your access token, follow these steps:</p>
+                        <ol>
+                            <li>Associate a Facebook account with your 8 Ball Pool account.</li>
+                            <li>
+                                Log in to <a href="https://www.miniclip.com/user/en/login/" target="_blank" rel="noopener">8ballpool.com</a>
+                                with your Facebook account.
+                            </li>
+                            <li>Open the browser's developer console (usually with the F12 key).</li>
+                            <li>Paste the following code into the console and press Enter to get the token:</li>
+                        </ol>
+                        <pre>
+                            <code>await fetch("https://8ballpool.com/api/v2/user", {
+          headers: {
+            authorization: localStorage.shopAccessToken,
+          },
+          referrer: "https://8ballpool.com/game",
+          body: null,
+          method: "GET",
+          mode: "cors",
+          credentials: "include"
+        }).then(response => response.json()).then(data => data.game_token);</code>
+                        </pre>
+                        <input type="text" id="token-input" placeholder="Paste your access token here">
+                        <div class="button-container">
+                            <button id="submit-token-btn">Submit Token</button>
+                            <button id="guest-mode-btn">Play as Guest</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            window.addEventListener("keydown", function(e) {
+                // Disables browser default behaviours for space and arrow keys.
+                if ([32, 37, 38, 39, 40].indexOf(e.keyCode) > -1 && e.target == document.body) {
+                    e.preventDefault();
+                }
+            });
+
+            function initializeGame(config) {
+                // Initializes the game with a given configuration using requirejs.
+                requirejs(['game'], function(Application) {
+                    Application.init(config);
+                });
+                setTimeout( () => document.querySelector("#loading").style.display = 'block', 2000);
+            }
+
+            function setupStandardGame(token) {
+                // Sets up and initializes the standard, logged-in version of the game.
+                requirejs.config({
+                    baseUrl: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js",
+                    config: {
+                        'settings': {
+                            'img_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/img",
+                            'css_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/css",
+                            'js_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/js"
+                        }
+                    },
+                    waitSeconds: 60,
+                    shim: {
+                        'miniclip': {
+                            exports: 'MC'
+                        }
+                    },
+                    paths: {
+                        jquery: '//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min',
+                        miniclip: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js/mc-sdk"
+                    },
+                    packages: [{
+                        name: 'game',
+                        location: "//static-web-pool-production.pool.miniclippt.com/game/4.4.3_8602f/js",
+                        main: 'application'
+                    }]
+                });
+                const config = {
+                    'environment': "production",
+                    'platform': 'miniclip',
+                    'app_id': 17,
+                    'base_url': "//static-web-pool-production.pool.miniclippt.com/game",
+                    'config_base_url': "//v34-web-live-config.pool.miniclippt.com",
+                    'client_version': "4.4.3_8602f",
+                    'access_token': token,
+                    'emmett': 1,
+                    'config_id_game': 0,
+                    'config_id_promo': 0,
+                    'syndicated': true,
+                    'payment_endpoint': "https://prod-8ballpool-emscripten-site-service.pool.miniclippt.com"
+                };
+                initializeGame(config);
+            }
+
+            function setupGuestGame() {
+                // Sets up and initializes the guest version of the game.
+                requirejs.config({
+                    baseUrl: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js",
+                    config: {
+                        'settings': {
+                            'img_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/img",
+                            'css_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/css",
+                            'js_root': "//static-web-pool-production.pool.miniclippt.com/site/master_173/js"
+                        }
+                    },
+                    waitSeconds: 60,
+                    shim: {
+                        'miniclip': {
+                            exports: 'MC'
+                        }
+                    },
+                    paths: {
+                        jquery: '//ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min',
+                        miniclip: "//static-web-pool-production.pool.miniclippt.com/site/master_173/js/mc-sdk"
+                    },
+                    packages: [{
+                        name: 'game',
+                        location: "//static-web-pool-production.pool.miniclippt.com/game/wasm_guest_1.0.0_73372/js",
+                        main: 'application'
+                    }]
+                });
+                const guestConfig = {
+                    'environment': "production",
+                    'platform': 'miniclip',
+                    'app_id': 17,
+                    'base_url': "//static-web-pool-production.pool.miniclippt.com/game",
+                    'config_base_url': "//v34-web-live-config.pool.miniclippt.com",
+                    'client_version': "wasm_guest_1.0.0_73372",
+                    'access_token': false,
+                    'config_id_game': 0,
+                    'config_id_promo': 0,
+                    'syndicated': false,
+                    'payment_endpoint': "https://prod-8ballpool-emscripten-site-service.pool.miniclippt.com"
+                };
+                initializeGame(guestConfig);
+            }
+
+            function showTokenRequester() {
+                // Displays the HTML modal for token input.
+                const overlay = document.getElementById('token-requester-overlay');
+                if (overlay) {
+                    overlay.style.display = 'flex';
+                }
+            }
+
+            function hideTokenRequester() {
+                // Hides the HTML modal for token input.
+                const overlay = document.getElementById('token-requester-overlay');
+                if (overlay) {
+                    overlay.style.display = 'none';
+                }
+            }
+
+            function initializeAppLogic() {
+                // Handles the logic for checking for an access token and initializing the game.
+                const storedToken = localStorage.getItem('access_token');
+                if (storedToken) {
+                    setupStandardGame(storedToken);
+                } else if (localStorage.getItem('login') === '1') {
+                    showTokenRequester();
+                } else {
+                    setupGuestGame();
+                }
+            }
+
+            function scaleBody() {
+                // Scales the game wrapper to fit the viewport.
+                const bodyWidth = 900
+                  , bodyHeight = 600
+                  , aspectRatio = bodyWidth / bodyHeight;
+                const viewportWidth = window.innerWidth
+                  , viewportHeight = window.innerHeight
+                  , viewportAspectRatio = viewportWidth / viewportHeight;
+                let scale, offsetX = 0, offsetY = 0;
+                if (viewportAspectRatio > aspectRatio) {
+                    scale = viewportHeight / bodyHeight;
+                    offsetX = (viewportWidth - (bodyWidth * scale)) / 2;
+                } else {
+                    scale = viewportWidth / bodyWidth;
+                    offsetY = (viewportHeight - (bodyHeight * scale)) / 2;
+                }
+                // MODIFIED: This now targets the #game-wrapper div to scale and center it.
+                document.getElementById('game-wrapper').style.transform = `translate(${offsetX}px, ${offsetY}px) scale(${scale})`;
+
+                // This part for the modal remains the same, as it needs a counter-transform.
+                const modalOverlay = document.getElementById('token-requester-overlay');
+                if (modalOverlay) {
+                    modalOverlay.style.transform = `translate(${-offsetX}px, ${-offsetY}px) scale(${1 / scale})`;
+                }
+            }
+
+            function handleFirstInteraction(event) {
+                // Handles the first user click to trigger fullscreen and pass the click to the game.
+                const overlay = document.getElementById('click-catcher');
+                const elem = document.documentElement;
+
+                const propagateClick = () => {
+                    const canvas = document.getElementById('engine');
+                    if (canvas) {
+                        const newClickEvent = new MouseEvent('click',{
+                            bubbles: true,
+                            cancelable: true,
+                            view: window,
+                            clientX: event.clientX,
+                            clientY: event.clientY,
+                            screenX: event.screenX,
+                            screenY: event.screenY,
+                            button: event.button,
+                            buttons: event.buttons,
+                            relatedTarget: event.relatedTarget
+                        });
+                        setTimeout( () => canvas.dispatchEvent(newClickEvent), 500);
+                    }
+                    if (overlay && overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                }
+                ;
+
+                const onFullscreenChange = () => {
+                    if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                        propagateClick();
+                    }
+                }
+                ;
+
+                document.addEventListener('fullscreenchange', onFullscreenChange, {
+                    once: true
+                });
+                document.addEventListener('webkitfullscreenchange', onFullscreenChange, {
+                    once: true
+                });
+                document.addEventListener('mozfullscreenchange', onFullscreenChange, {
+                    once: true
+                });
+                document.addEventListener('MSFullscreenChange', onFullscreenChange, {
+                    once: true
+                });
+
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => {}
+                    );
+                }
+
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen().catch(err => {
+                        propagateClick();
+                    }
+                    );
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                } else {
+                    propagateClick();
+                }
+            }
+
+            function registerServiceWorker() {
+                // Registers the service worker and handles automatic updates.
+                if ('serviceWorker'in navigator) {
+                    navigator.serviceWorker.register('sw.js').then(registration => {
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed') {
+                                    newWorker.postMessage({
+                                        type: 'SKIP_WAITING'
+                                    });
+                                    setTimeout( () => {
+                                        window.location.reload();
+                                    }
+                                    , 1000);
+                                }
+                            }
+                            );
+                        }
+                        );
+                    }
+                    ).catch(err => console.error('SW registration failed:', err));
+                }
+            }
+
+            window.addEventListener('load', function() {
+                // Main function that runs when the page loads, setting up the entire application.
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('reset')) {
+
+                    localStorage.clear();
+
+                    if ('caches'in window) {
+                        const deleteCacheEntry = async () => {
+                            try {
+                                // 1. Define the URL of the main page to be removed from cache.
+                                const urlToMatch = location.host + location.pathname;
+
+                                // 2. Get all cache storage keys.
+                                const cacheNames = await caches.keys();
+
+                                // 3. Iterate over each cache.
+                                for (const cacheName of cacheNames) {
+                                    const cache = await caches.open(cacheName);
+                                    // 4. Get all requests stored in the current cache.
+                                    const requests = await cache.keys();
+                                    // 5. Find and delete the request that matches the main page's URL.
+                                    for (const request of requests) {
+                                        const requestUrl = new URL(request.url);
+                                        if (requestUrl.host + requestUrl.pathname === urlToMatch) {
+                                            await cache.delete(request);
+                                            console.log(`Deleted ${request.url} from cache '${cacheName}'.`);
+                                        }
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Error during cache cleanup:', error);
+                            }
+                        }
+                        ;
+
+                        deleteCacheEntry();
+                    }
+                    location.reload(true);
+                }
+
+                initializeAppLogic();
+                scaleBody();
+
+                if (urlParams.has('nofs') || urlParams.has('utm_source')) {
+                    const overlay = document.getElementById('click-catcher');
+                    if (overlay && overlay.parentNode) {
+                        overlay.parentNode.removeChild(overlay);
+                    }
+                } else {
+                    const overlay = document.getElementById('click-catcher');
+                    overlay.addEventListener('click', handleFirstInteraction, {
+                        once: true
+                    });
+                }
+
+                document.getElementById('submit-token-btn').addEventListener('click', function() {
+                    const userToken = document.getElementById('token-input').value;
+                    if (userToken) {
+                        let finalToken = userToken;
+                        if (userToken.length > 32) {
+                            try {
+                                const decodedString = atob(userToken);
+                                const jsonObject = JSON.parse(decodedString);
+                                if (jsonObject && jsonObject.access_token) {
+                                    finalToken = jsonObject.access_token;
+                                }
+                            } catch (e) {
+                                console.error("Failed to parse token, using as is.", e);
+                            }
+                        }
+                        localStorage.setItem('access_token', finalToken);
+                        hideTokenRequester();
+                        setupStandardGame(finalToken);
+                    }
+                });
+
+                document.getElementById('guest-mode-btn').addEventListener('click', function() {
+                    localStorage.clear();
+                    hideTokenRequester();
+                    setupGuestGame();
+                });
+
+                registerServiceWorker();
+            });
+
+            window.addEventListener('resize', scaleBody);
+            document.addEventListener('fullscreenchange', () => setTimeout(scaleBody, 100));
+            document.addEventListener('webkitfullscreenchange', () => setTimeout(scaleBody, 100));
+            document.addEventListener('mozfullscreenchange', () => setTimeout(scaleBody, 100));
+            document.addEventListener('MSFullscreenChange', () => setTimeout(scaleBody, 100));
+
+            window.addEventListener('message', function(event) {
+                // Handles the reload message from the updated service worker.
+                if (event.data && event.data.type === 'SW_UPDATED') {
+                    window.location.reload();
+                    return;
+                }
+
+                // Handles the original login message event.
+                try {
+                    const message = JSON.parse(event.data);
+                    if (message && message.data && message.data.action === "login") {
+                        localStorage.clear();
+                        localStorage.login = 1;
+                        window.location.reload();
+                    }
+                } catch (e) {// Ignores messages that are not valid JSON or are not for the login action.
+                }
+            });
+            (function() {
+                document.querySelector("#canvas-container").style.display = 'none';
+                // Store the original console.log function
+                const originalLog = console.log;
+
+                // Override console.log with a new function
+                console.log = function(message, ...args) {
+
+                    // Call the original console.log to print the message as usual
+                    originalLog.apply(console, [message, ...args]);
+
+                    // Check if the message is the one we are waiting for
+                    if (message == ("[Runtime]") && args[0] == "Initialized.") {
+                        document.querySelector("#canvas-container").style.display = 'block';
+                        document.querySelector("#loading").style.display = 'none';
+                    }
+                }
+                ;
+            }
+            )();
+
+            /*
+                window.addEventListener("beforeinstallprompt", (event) => {
+                    event.preventDefault();
+                    let installPrompt = event;
+                    const clickHandler = () => {
+                        installPrompt.prompt();
+                        window.removeEventListener("click", clickHandler);
+                    };
+                    window.addEventListener("click", clickHandler);
+                });
+        */
+            if (navigator.userAgentData && navigator.userAgentData.mobile && (localStorage['debug'] !== "1")) {
+
+                const gameCanvas = document.getElementById('engine');
+
+                // --- State Management Variables ---
+                let tapTimeout = null;
+                let lastTap = 0;
+                let doubleTapFlag = false;
+                let isDraggingAfterDoubleTap = false;
+
+                // --- Helper Function to Simulate Mouse Events ---
+                function simulateMouseEvent(type, touch) {
+                    const simulatedEvent = new MouseEvent(type,{
+                        bubbles: true,
+                        cancelable: true,
+                        view: window,
+                        detail: 1,
+                        screenX: touch.screenX,
+                        screenY: touch.screenY,
+                        clientX: touch.clientX,
+                        clientY: touch.clientY,
+                        button: 0,
+                        relatedTarget: null
+                    });
+                    touch.target.dispatchEvent(simulatedEvent);
+                    console.log('Emulating', type);
+                }
+
+                // --- Main Touch Handler ---
+                function touchHandler(event) {
+                    event.preventDefault();
+                    // Prevent default behaviors like scrolling
+                    const touch = event.changedTouches[0];
+
+                    switch (event.type) {
+                    case 'touchstart':
+                        {
+                            const currentTime = new Date().getTime();
+                            const tapLength = currentTime - lastTap;
+                            clearTimeout(tapTimeout);
+
+                            if (tapLength < 300 && tapLength > 0) {
+                                // Double tap detected
+                                console.log('Double tap detected, flag set.');
+                                doubleTapFlag = true;
+                                // Cancel any pending single tap action
+                                clearTimeout(tapTimeout);
+                            } else {
+                                // This is the first tap, or a tap after a long delay.
+                                // Set a timeout to treat it as a single tap if nothing else happens.
+                                tapTimeout = setTimeout( () => {
+                                    console.log('Single tap action fired.');
+                                    simulateMouseEvent('mousedown', touch);
+                                    simulateMouseEvent('mousemove', touch);
+                                    simulateMouseEvent('mouseup', touch);
+                                }
+                                , 300);
+                            }
+                            lastTap = currentTime;
+                            break;
+                        }
+
+                    case 'touchmove':
+                        {
+                            // If the finger moves, it's a drag, not a tap.
+                            clearTimeout(tapTimeout);
+
+                            if (doubleTapFlag) {
+                                // This is a drag that started after a double tap.
+                                if (!isDraggingAfterDoubleTap) {
+                                    // On the very first move, send a mousedown.
+                                    simulateMouseEvent('mousedown', touch);
+                                    isDraggingAfterDoubleTap = true;
+                                }
+                                // Continue sending mousemove events.
+                                simulateMouseEvent('mousemove', touch);
+                            } else {
+                                // This is a normal drag (flag is not set).
+                                // Only send mousemove events.
+                                simulateMouseEvent('mousemove', touch);
+                            }
+                            break;
+                        }
+
+                    case 'touchend':
+                    case 'touchcancel':
+                        {
+                            // If a drag after a double tap was in progress, send a mouseup.
+                            if (isDraggingAfterDoubleTap) {
+                                simulateMouseEvent('mouseup', touch);
+                                isDraggingAfterDoubleTap = false;
+                                doubleTapFlag = false;
+                                // Reset the flag after the action is complete.
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                // Set up the touch event listeners
+                gameCanvas.addEventListener('touchstart', touchHandler, true);
+                gameCanvas.addEventListener('touchmove', touchHandler, true);
+                gameCanvas.addEventListener('touchend', touchHandler, true);
+                gameCanvas.addEventListener('touchcancel', touchHandler, true);
+
+                // (This part remains unchanged)
+                // It prevents other parts of the application from adding their own touch listeners.
+                (function() {
+                    const originalAddEventListener = EventTarget.prototype.addEventListener;
+                    EventTarget.prototype.addEventListener = function(type, listener, options) {
+                        const touchEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
+                        if (touchEvents.includes(type)) {
+                            console.warn(`Attempted to add a blocked touch event: ${type}`);
+                            return;
+                        }
+                        originalAddEventListener.call(this, type, listener, options);
+                    }
+                    ;
+                }
+                )();
+            }
+        </script>
+    </body>
+</html>
